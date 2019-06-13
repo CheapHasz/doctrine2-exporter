@@ -512,6 +512,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
+                    ->write(' * @var iterable')
                     ->write(' * '.$this->getAnnotation('OneToMany', $annotationOptions))
                     ->write(' * '.$this->getJoins($local))
                     ->writeCallback(function(WriterInterface $writer, Table $_this = null) use ($local) {
@@ -530,6 +531,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
+                    ->write(' * @var '.$annotationOptions['targetEntity'])
                     ->write(' * '.$this->getAnnotation('OneToOne', $annotationOptions))
                     ->write(' */')
                     ->write('protected $'.lcfirst($targetEntity).';')
@@ -558,14 +560,16 @@ class Table extends BaseTable
                 'cascade' => $this->getFormatter()->getCascadeOption($foreign->parseComment('cascade')),
                 'fetch' => $this->getFormatter()->getFetchOption($foreign->parseComment('fetch')),
             );
-
+            $joins = $this->getJoins($foreign, false);
             if ($foreign->isManyToOne()) {
                 $this->getDocument()->addLog('  Relation considered as "N <=> 1"');
 
+
                 $writer
                     ->write('/**')
+                    ->write(' * @var ' . $annotationOptions['targetEntity'] . ($joins->getContent('nullable') !== false ? '|null' : ''))
                     ->write(' * '.$this->getAnnotation('ManyToOne', $annotationOptions))
-                    ->write(' * '.$this->getJoins($foreign, false))
+                    ->write(' * '.$joins)
                     ->write(' */')
                     ->write('protected $'.lcfirst($this->getRelatedVarName($targetEntity, $related)).';')
                     ->write('')
@@ -580,6 +584,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
+                    ->write(' * @var ' . $annotationOptions['targetEntity'] . ($joins->getContent('nullable') !== false ? '|null' : ''))
                     ->write(' * '.$this->getAnnotation('OneToOne', $annotationOptions))
                     ->write(' * '.$this->getJoins($foreign, false))
                     ->write(' */')

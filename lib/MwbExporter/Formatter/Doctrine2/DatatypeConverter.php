@@ -55,14 +55,14 @@ class DatatypeConverter extends BaseDatatypeConverter
             static::DATATYPE_BLOB               => 'blob',
             static::DATATYPE_MEDIUMBLOB         => 'blob',
             static::DATATYPE_LONGBLOB           => 'blob',
-            static::DATATYPE_DATETIME           => 'datetime',
-            static::DATATYPE_DATETIME_F         => 'datetime',
-            static::DATATYPE_DATE               => 'date',
-            static::DATATYPE_DATE_F             => 'date',
+            static::DATATYPE_DATETIME           => 'datetime_immutable',
+            static::DATATYPE_DATETIME_F         => 'datetime_immutable',
+            static::DATATYPE_DATE               => 'date_immutable',
+            static::DATATYPE_DATE_F             => 'date_immutable',
             static::DATATYPE_TIME               => 'time',
             static::DATATYPE_TIME_F             => 'time',
-            static::DATATYPE_TIMESTAMP          => 'datetime',
-            static::DATATYPE_TIMESTAMP_F        => 'datetime',
+            static::DATATYPE_TIMESTAMP          => 'datetime_immutable',
+            static::DATATYPE_TIMESTAMP_F        => 'datetime_immutable',
             static::DATATYPE_YEAR               => 'smallint',
             static::DATATYPE_GEOMETRY           => 'object',
             static::DATATYPE_LINESTRING         => 'object',
@@ -110,7 +110,9 @@ class DatatypeConverter extends BaseDatatypeConverter
             case 'datetimez':
             case 'date':
             case 'time':
-                return '\\DateTime';
+            case 'datetime_immutable':
+            case 'date_immutable':
+                return '\\DateTimeImmutable';
                 break;
 
             case 'smallint':

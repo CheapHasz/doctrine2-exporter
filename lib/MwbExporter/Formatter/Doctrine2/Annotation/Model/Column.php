@@ -40,13 +40,14 @@ class Column extends BaseColumn
             $writer
                 ->write('/**')
                 ->writeIf($comment, $comment)
+                ->write(' * @var '.$this->getNativeType() . ($this->isNotNull() ? '' :  '|null'))
                 ->writeIf($this->isPrimary,
                         ' * '.$this->getTable()->getAnnotation('Id'))
                 ->write(' * '.$this->getTable()->getAnnotation('Column', $this->asAnnotation()))
                 ->writeIf($this->isAutoIncrement(),
                         ' * '.$this->getTable()->getAnnotation('GeneratedValue', array('strategy' => strtoupper($this->getConfig()->get(Formatter::CFG_GENERATED_VALUE_STRATEGY)))))
                 ->write(' */')
-                ->write('protected $'.$this->getColumnName().';')
+                ->write('protected $'.lcfirst($this->getBeautifiedColumnName()).';')
                 ->write('')
             ;
         }
@@ -122,5 +123,13 @@ class Column extends BaseColumn
         }
 
         return $attributes;
+    }
+
+    protected function getNativeType()
+    {
+        $converter = $this->getFormatter()->getDatatypeConverter();
+        $nativeType = $converter->getNativeType($converter->getMappedType($this));
+
+        return $nativeType;
     }
 }
