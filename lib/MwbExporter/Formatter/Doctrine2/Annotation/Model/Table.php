@@ -237,17 +237,16 @@ class Table extends BaseTable
                 $_this->writeUsedClasses($writer);
             })
             ->write('/**')
-            ->write(' * '.$this->getNamespace(null, false))
             ->write(' *')
             ->writeIf($comment, $comment)
-            ->write(' * '.$this->getAnnotation('Entity', array('repositoryClass' => $this->getConfig()->get(Formatter::CFG_AUTOMATIC_REPOSITORY) ? $repositoryNamespace.$this->getModelName().'Repository' : null)))
-            ->write(' * '.$this->getAnnotation('Table', array('name' => $this->quoteIdentifier($this->getRawTableName()), 'indexes' => $this->getIndexesAnnotation('Index'), 'uniqueConstraints' => $this->getIndexesAnnotation('UniqueConstraint'))))
+            ->write(' * '.$this->getAnnotation('Entity', array('repositoryClass' => $this->getConfig()->get(Formatter::CFG_AUTOMATIC_REPOSITORY) ? $repositoryNamespace.$this->getPrefixModelName().'Repository' : null)))
+            ->write(' * '.$this->getAnnotation('Table', array('name' => $this->quoteIdentifier($this->getRawTableName()) )))
             ->writeIf($extendableEntity, ' * '.$this->getAnnotation('InheritanceType', array('SINGLE_TABLE')))
             ->writeIf($extendableEntity, ' * '.$this->getAnnotation('DiscriminatorColumn', $this->getInheritanceDiscriminatorColumn()))
             ->writeIf($extendableEntity, ' * '.$this->getAnnotation('DiscriminatorMap', array($this->getInheritanceDiscriminatorMap())))
             ->writeIf($lifecycleCallbacks, ' * @HasLifecycleCallbacks')
             ->write(' */')
-            ->write('class '.$this->getClassName($extendableEntity).$extendsClass.$implementsInterface)
+            ->write('class '.$this->getPrefixModelName($extendableEntity).$extendsClass.$implementsInterface)
             ->write('{')
             ->indent()
                 ->writeCallback(function(WriterInterface $writer, Table $_this = null) use ($skipGetterAndSetter, $serializableEntity, $lifecycleCallbacks) {
@@ -493,7 +492,8 @@ class Table extends BaseTable
             }
 
             $targetEntity = $local->getOwningTable()->getModelName();
-            $targetEntityFQCN = $local->getOwningTable()->getModelNameAsFQCN($local->getReferencedTable()->getEntityNamespace());
+            $targetEntityFQCN = $local->getOwningTable()->getPrefixModelNameAsFQCN($local->getReferencedTable()->getEntityNamespace());
+
             $mappedBy = $local->getReferencedTable()->getModelName();
             $related = $local->getForeignM2MRelatedName();
 
@@ -512,7 +512,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
-                    ->write(' * @var iterable')
+                    ->write(' * @var '.$targetEntity.'[]')
                     ->write(' * '.$this->getAnnotation('OneToMany', $annotationOptions))
                     ->write(' * '.$this->getJoins($local))
                     ->writeCallback(function(WriterInterface $writer, Table $_this = null) use ($local) {
@@ -531,7 +531,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
-                    ->write(' * @var '.$annotationOptions['targetEntity'])
+                    ->write(' * @var '.$targetEntity)
                     ->write(' * '.$this->getAnnotation('OneToOne', $annotationOptions))
                     ->write(' */')
                     ->write('protected $'.lcfirst($targetEntity).';')
@@ -548,7 +548,7 @@ class Table extends BaseTable
             }
 
             $targetEntity = $foreign->getReferencedTable()->getModelName();
-            $targetEntityFQCN = $foreign->getReferencedTable()->getModelNameAsFQCN($foreign->getOwningTable()->getEntityNamespace());
+            $targetEntityFQCN = $foreign->getReferencedTable()->getPrefixModelNameAsFQCN($foreign->getOwningTable()->getEntityNamespace());
             $inversedBy = $foreign->getOwningTable()->getModelName();
             $related = $this->getRelatedName($foreign);
 
@@ -567,7 +567,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
-                    ->write(' * @var ' . $annotationOptions['targetEntity'] . ($joins->getContent('nullable') !== false ? '|null' : ''))
+                    ->write(' * @var ' . $targetEntity . ($joins->getContent('nullable') !== false ? '|null' : ''))
                     ->write(' * '.$this->getAnnotation('ManyToOne', $annotationOptions))
                     ->write(' * '.$joins)
                     ->write(' */')
@@ -584,7 +584,7 @@ class Table extends BaseTable
 
                 $writer
                     ->write('/**')
-                    ->write(' * @var ' . $annotationOptions['targetEntity'] . ($joins->getContent('nullable') !== false ? '|null' : ''))
+                    ->write(' * @var ' . $targetEntity . ($joins->getContent('nullable') !== false ? '|null' : ''))
                     ->write(' * '.$this->getAnnotation('OneToOne', $annotationOptions))
                     ->write(' * '.$this->getJoins($foreign, false))
                     ->write(' */')
@@ -605,7 +605,7 @@ class Table extends BaseTable
             $fk1 = $relation['reference'];
             $isOwningSide = $this->getFormatter()->isOwningSide($relation, $fk2);
             $annotationOptions = array(
-                'targetEntity' => $relation['refTable']->getModelNameAsFQCN($this->getEntityNamespace()),
+                'targetEntity' => $relation['refTable']->getPrefixModelNameAsFQCN($this->getEntityNamespace()),
                 'mappedBy' => null,
                 'inversedBy' => lcfirst($this->getPluralModelName()),
                 'cascade' => $this->getFormatter()->getCascadeOption($fk1->parseComment('cascade')),

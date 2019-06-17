@@ -26,6 +26,7 @@
 
 namespace MwbExporter\Formatter\Doctrine2\Model;
 
+use MwbExporter\Formatter\FormatterInterface;
 use MwbExporter\Model\Table as BaseTable;
 use MwbExporter\Formatter\Doctrine2\Formatter;
 use Doctrine\Common\Inflector\Inflector;
@@ -77,6 +78,29 @@ class Table extends BaseTable
 
         return $fqcn ? $namespace.'\\'.$this->getModelName() : $this->getModelName();
     }
+
+    /**
+     * Get Model Name in FQCN format. If reference namespace is suplied and the entity namespace
+     * is equal then relative model name returned instead.
+     *
+     * @param string $referenceNamespace The reference namespace
+     * @return string
+     */
+    public function getPrefixModelNameAsFQCN($referenceNamespace = null)
+    {
+        $namespace = $this->getEntityNamespace();
+        $fqcn = ($namespace == $referenceNamespace) ? false : true;
+
+        return $fqcn ? $namespace.'\\'.$this->getPrefixModelName() : $this->getPrefixModelName();
+    }
+
+    public function getPrefixModelName()
+    {
+        $prefix = $this->getConfig()->get(\MwbExporter\Formatter\Doctrine2\Annotation\Formatter::CFG_ENTITY_PREFIX);
+
+        return $prefix . $this->getModelName();
+    }
+
 
     /**
      * Get lifecycleCallbacks.
